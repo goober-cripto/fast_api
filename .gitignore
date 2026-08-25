@@ -1,0 +1,5 @@
+# Виртуальное окружение
+.venv/
+
+# Фронтенд
+.todo-app-frontend-master/
