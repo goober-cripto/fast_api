@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from fastapi import FastAPI, status
+from fastapi import FastAPI, status, HTTPException
 from pydantic import BaseModel
 
 
@@ -26,20 +26,15 @@ class Task(BaseModel):
     title: str
     completed: bool = False
 
-
 class TaskCreate(BaseModel):
     title: str
 
-class Book(BaseModel):
-    """Книга любимая"""
-    id: str
-    title: str
-
-class BookCreate(BaseModel):
-    title: str
+class TaskUpdate(BaseModel):
+    title: str | None = None
+    completed: bool | None = None
 
 tasks: list[Task] = []
-books: list[Book] = []
+
 
 @app.get("/tasks", response_model=list[Task])
 def get_tasks():
@@ -55,14 +50,30 @@ def create_task(payload: TaskCreate):
     return task
 
 
-@app.post("/book", response_model=Book, status_code=status.HTTP_201_CREATED)
-def create_book(payload: BookCreate):
-    """Создать новую любимую книгу"""
-    book = Book(id=str(uuid4()), title=payload.title)
-    books.append(book)
-    return book
+@app.patch("/tasks/{task_id}", response_model=Task, status_code=status.HTTP_200_OK)
+def update_task(task_id: str, payload: TaskUpdate):
+    """Обонвить новую задачу"""
+    for task in tasks:
+        if task.id == task_id:
+            if payload.title is not None:
+                task.title = payload.title
+            if payload.completed is not None:
+                task.completed = payload.completed
+    
+            return task
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Задача не найдена")
 
-@app.get("/book", response_model=list[Book])
-def get_book():
-    """Получить книгу любимую"""
-    return books
+
+@app.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_task(task_id: str):
+    """Удалить задачу"""
+    for task in tasks:
+        if task.id == task_id:
+           tasks.remove(task)
+           return
+    
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Задача не найдена")
+
+
+
+
