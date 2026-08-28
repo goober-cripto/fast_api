@@ -13,6 +13,7 @@ from app.db.session import engine
 async def lifespan(_: FastAPI):
     # Все нужные модели должны быть импортированы перед запуском
     from app.modeles.task import TaskORM
+    from app.modeles.categori import CategoriORM
     Base.metadata.create_all(bind=engine)
     yield
 
